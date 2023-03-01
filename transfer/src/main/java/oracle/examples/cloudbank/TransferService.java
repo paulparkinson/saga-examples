@@ -1,11 +1,9 @@
-package oracle.examples.cloudbank.tripservice;
+package oracle.examples.cloudbank;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -32,22 +30,11 @@ public class TransferService {
     private static final Logger log = Logger.getLogger(TransferService.class.getSimpleName());
     private URI withdrawUri;
     private URI depositUri;
-    @Inject
-    @ConfigProperty(name = "withdraw.account.service.url")
-    private String withdrawAccountServiceUrl;
-    @Inject
-    @ConfigProperty(name = "deposit.account.service.url")
-    private String depositAccountServiceUrl;
-
-    @Inject
-    @ConfigProperty(name = "mp.lra.coordinator.url")
-    private String coordinatorRes;
-
     @PostConstruct
     private void initController() {
-        try {
-            withdrawUri = new URI(withdrawAccountServiceUrl);
-            depositUri = new URI(depositAccountServiceUrl);
+        try { //todo get from Environment instead...
+            withdrawUri = new URI(System.getenv("withdraw.account.service.url"));
+            depositUri = new URI(System.getenv("deposit.account.service.url"));
         } catch (URISyntaxException ex) {
             throw new IllegalStateException("Failed to initialize " + TransferService.class.getName(), ex);
         }
