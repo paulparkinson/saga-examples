@@ -10,7 +10,7 @@ spring:
   # JPA Configuration
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 #      ddl-auto: validate
     properties:
       hibernate:

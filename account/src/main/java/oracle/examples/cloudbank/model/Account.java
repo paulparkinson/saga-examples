@@ -17,7 +17,7 @@ import java.util.Date;
 @Table(name = "ACCOUNTS")
 @Data
 @NoArgsConstructor
-public class Accounts {
+public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,7 +43,7 @@ public class Accounts {
     @Column(name = "ACCOUNT_BALANCE")
     private long accountBalance;
 
-    public Accounts(String accountName, String accountType, String accountOtherDetails, String accountCustomerId) {
+    public Account(String accountName, String accountType, String accountOtherDetails, String accountCustomerId) {
         this.accountName = accountName;
         this.accountType = accountType;
         this.accountOtherDetails = accountOtherDetails;

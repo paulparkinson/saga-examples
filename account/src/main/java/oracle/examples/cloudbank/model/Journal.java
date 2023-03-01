@@ -6,9 +6,10 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 
 /**
- * Journal services two purposes:
+ * Journal services multiple purposes:
  *  - Ledger/journal for tracking changes made in an LRA
  *  - Store for LRA state
+ *  - Blockchain could facilitate auditing/ledger aspects of the journal
  */
 @Entity
 @Table(name = "JOURNAL")
