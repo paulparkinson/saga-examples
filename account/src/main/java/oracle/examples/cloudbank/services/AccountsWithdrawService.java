@@ -76,6 +76,7 @@ public class AccountsWithdrawService {
         log.info("Account Resource compensate() called for LRA : " + lraId);
         Journal journal = AccountLRAUtils.instance().getJournalForLRAid(lraId);
         Account account = AccountLRAUtils.instance().getAccountForAccountName(journal.getAccountName());
+        journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Compensating));
         account.setAccountBalance(account.getAccountBalance() + journal.getJournalAmount());
         accountRepository.save(account);
         journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Compensated));

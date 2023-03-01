@@ -76,6 +76,7 @@ public class AccountsDepositService {
         //get the journal and account...
         Journal journal = AccountLRAUtils.instance().getJournalForLRAid(lraId);
         Account account= AccountLRAUtils.instance().getAccountForJournal(journal);
+        journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Completing));
         //update the account balance and journal entry...
         account.setAccountBalance(account.getAccountBalance() + journal.getJournalAmount());
         accountRepository.save(account);
