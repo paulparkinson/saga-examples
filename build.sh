@@ -17,7 +17,7 @@
 # This software or hardware and documentation may provide access to or information about content, products, and services from third parties. Oracle Corporation and its affiliates are not responsible for and expressly disclaim all warranties of any kind with respect to third-party content, products, and services unless otherwise set forth in an applicable agreement between you and Oracle. Oracle Corporation and its affiliates will not be responsible for any loss, costs, or damages incurred due to your access to or use of third-party content, products, or services, except as set forth in an applicable agreement between you and Oracle.
 #!/bin/bash
 DOCKER_REGISTRY=iad.ocir.io/maacloud/baasdev
-IMAGE_VERSION=0.2
+IMAGE_VERSION=0.3
 
 cd account
 mvn  clean
@@ -29,29 +29,12 @@ docker build -t=$IMAGE .
 docker push "$IMAGE"
 cd ../
 
-#cd hotel
-#mvn package
-#docker image build -t=lra-hotel .
-#IMAGE_NAME=lra-hotel
-#export IMAGE=${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}
-#docker build -t=$IMAGE .
-#docker push "$IMAGE"
-#cd ../
-#
-#cd flight-springboot
-#mvn package
-#docker image build -t=lra-flight-sb .
-#IMAGE_NAME=lra-flight-sb
-#export IMAGE=${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}
-#docker build -t=$IMAGE .
-#docker push "$IMAGE"
-#cd ../
-#
-#cd trip-manager
-#mvn package
-#docker image build -t=lra-trip-manager .
-#IMAGE_NAME=lra-trip-manager
-#export IMAGE=${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}
-#docker build -t=$IMAGE .
-#docker push "$IMAGE"
-#cd ../
+cd transfer
+mvn  clean
+mvn  -Dmaven.test.skip=true package
+docker image build -t=transfer .
+IMAGE_NAME=transfer
+export IMAGE=${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}
+docker build -t=$IMAGE .
+docker push "$IMAGE"
+cd ../

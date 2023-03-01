@@ -13,15 +13,14 @@ ADD pom.xml .
 # Incremental docker builds will resume here when you change sources
 ADD src src
 RUN mvn package -DskipTests
-RUN echo "done!"
 
 # 2nd stage, build the runtime image
 FROM openjdk:11-jre-slim
 WORKDIR /app
 
 # Copy the binary built in the 1st stage
-COPY --from=build /app/target/flight.jar ./
+COPY --from=build /app/target/account.jar ./
 
-CMD ["java", "-Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true", "-Dorg.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH=true", "-jar", "flight.jar"]
+CMD ["java", "-Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true", "-Dorg.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH=true", "-jar", "account.jar"]
 
 EXPOSE 8083
