@@ -23,4 +23,4 @@ COPY --from=build /app/target/transfer.jar ./
 
 CMD ["java", "-Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true", "-Dorg.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH=true", "-jar", "transfer.jar"]
 
-EXPOSE 8083
+#EXPOSE 8083

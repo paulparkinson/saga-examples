@@ -2,10 +2,10 @@
 To Install:
 oractl commands..
 create --appName cloudbank
-bind --appName cloudbank --serviceName account
-deploy --appName cloudbank --serviceName account --isRedeploy false --imageVersion 0.1 --jarLocation /Users/pparkins/Downloads/src/github.com/andytael/cloudbank/account/target/account-0.0.1-SNAPSHOT.jar
-(assuming `cloudbank` app/namespace has already been created)
-kubectl apply -f k8s_transfersaga.yaml -n cloudbank
+bind --appName application --serviceName account
+deploy --appName cloudbank --serviceName account --jarLocation cloudbank/account/target/account.jar --isRedeploy false
+deploy --appName application --serviceName transfer --jarLocation cloudbank/transfer/target/transfer.jar --isRedeploy false
+
 
 Sample Run:
 $ curl http://account.cloudbank.svc.cluster.local:8082/accountService/api/account

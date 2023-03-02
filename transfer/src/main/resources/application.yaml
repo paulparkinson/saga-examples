@@ -1,11 +1,11 @@
 server:
-  port: 8081
-  host: 0.0.0.0
+  port: 8080
+#  host: 0.0.0.0
 
 mp.lra:
   coordinator.url: http://localhost:9000/api/v1/lra-coordinator
   propagation.active: true
-  participant.url: http://localhost:8081
+  participant.url: http://localhost:8080
   coordinator.headers-propagation.prefix: ["x-b3-", "oracle-tmm-", "authorization", "refresh-"]
 
 deposit:
