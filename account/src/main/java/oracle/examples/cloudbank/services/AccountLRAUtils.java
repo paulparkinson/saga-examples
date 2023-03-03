@@ -104,7 +104,7 @@ public class AccountLRAUtils {
                     AccountLRAUtils.getStatusString(ParticipantStatus.FailedToComplete)));
             throw new Exception("Journal entry does not exist for lraId:" + lraId);
         }
-        journal = journals.get(1);
+        journal = journals.get(0);
         return journal;
     }
 

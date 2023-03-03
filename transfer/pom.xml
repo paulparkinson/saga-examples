@@ -5,6 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
+<!--		<version>3.0.0</version>-->
 		<version>2.7.8</version>
 		<relativePath/>
 	</parent>
@@ -15,25 +16,25 @@
 	<name>transfer</name>
 	<description>Transfer Service</description>
 	<properties>
-<!--		<java.version>11</java.version>-->
+		<java.version>17</java.version>
 		<spring-cloud.version>2021.0.5</spring-cloud.version>
 		<oracle.jdbc.version>21.8.0.0</oracle.jdbc.version>
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-starter-actuator</artifactId>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-			<version>4.0.0</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.cloud</groupId>-->
+<!--			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
+<!--&lt;!&ndash;			<version>4.0.0</version>&ndash;&gt;-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-jersey</artifactId>
@@ -52,7 +53,8 @@
 		<dependency>
 			<groupId>jakarta.enterprise</groupId>
 			<artifactId>jakarta.enterprise.cdi-api</artifactId>
-			<version>2.0.2</version>
+<!--			<version>4.0.1</version>-->
+						<version>2.0.2</version>
 		</dependency>
 
 		<dependency>
@@ -62,7 +64,17 @@
 		</dependency>
 
 	</dependencies>
-
+<!--	<dependencyManagement>-->
+<!--	  <dependencies>-->
+<!--	      <dependency>-->
+<!--	          <groupId>org.springframework.cloud</groupId>-->
+<!--	          <artifactId>spring-cloud-dependencies</artifactId>-->
+<!--	          <version>${spring-cloud.version}</version>-->
+<!--	          <type>pom</type>-->
+<!--	          <scope>import</scope>-->
+<!--	      </dependency>-->
+<!--	  </dependencies>-->
+<!--	</dependencyManagement>-->
 	<build>
 		<finalName>${project.name}</finalName>
 		<plugins>

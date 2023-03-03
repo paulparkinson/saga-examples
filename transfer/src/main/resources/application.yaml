@@ -3,7 +3,7 @@ server:
 #  host: 0.0.0.0
 
 mp.lra:
-  coordinator.url: http://localhost:9000/api/v1/lra-coordinator
+  coordinator.url: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator
   propagation.active: true
   participant.url: http://localhost:8080
   coordinator.headers-propagation.prefix: ["x-b3-", "oracle-tmm-", "authorization", "refresh-"]
@@ -16,3 +16,7 @@ withdraw:
   account:
     service:
       url: http://account.application:8080/withdraw
+
+lra:
+  coordinator:
+    url: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator

@@ -1,14 +1,15 @@
 package oracle.examples.cloudbank;
 
+import io.narayana.lra.Current;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 
+//import jakarta.annotation.PostConstruct;
 import javax.annotation.PostConstruct;
+//import jakarta.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+
+import javax.enterprise.context.RequestScoped;
+import javax.ws.rs.*;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -23,7 +24,8 @@ import java.util.logging.Logger;
 
 import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.LRA_HTTP_CONTEXT_HEADER;
 
-@ApplicationScoped
+@RequestScoped
+//@ApplicationScoped
 @Path("/transfer")
 public class TransferService {
 
@@ -32,18 +34,27 @@ public class TransferService {
     private URI depositUri;
     @PostConstruct
     private void initController() {
-        try { //todo get from Environment instead...
-            withdrawUri = new URI(System.getenv("withdraw.account.service.url"));
-            depositUri = new URI(System.getenv("deposit.account.service.url"));
+        try {
+            withdrawUri = new URI("http://account.application:8080/account/withdraw");
+            depositUri = new URI("http://account.application:8080/account/deposit");
         } catch (URISyntaxException ex) {
             throw new IllegalStateException("Failed to initialize " + TransferService.class.getName(), ex);
         }
+    }
+
+    @GET
+    @Path("/test")
+    @Produces(MediaType.APPLICATION_JSON)
+    @LRA(value = LRA.Type.REQUIRES_NEW)
+    public Response test() {
+        System.out.println("TransferService.test...");
+        return Response.ok().entity("test success").build();
     }
     @POST
     @Path("/transfer")
     @Produces(MediaType.APPLICATION_JSON)
     @LRA(value = LRA.Type.REQUIRES_NEW)
-    public Response bookTrip(@QueryParam("fromAccount") String fromAccount,
+    public Response transfer(@QueryParam("fromAccount") String fromAccount,
                              @QueryParam("toAccount") String toAccount,
                              @QueryParam("amount") long amount,
                              @Context UriInfo uriInfo,
@@ -54,9 +65,10 @@ public class TransferService {
             return Response.serverError().entity("Failed to create LRA").build();
         }
         log.info("Started new LRA : " + lraId);
-        withdraw(fromAccount, amount);
-        deposit(toAccount, amount);
-        return Response.ok("transfer successful").build();
+        String returnString = "";
+        returnString += withdraw(fromAccount, amount);
+        returnString += deposit(toAccount, amount);
+        return Response.ok("transfer status:" + returnString).build();
 
     }
     private String withdraw(String accountName, long depositAmount) {
@@ -65,7 +77,12 @@ public class TransferService {
                 ClientBuilder.newClient().target(withdrawUri).path("/")
                         .queryParam("accountName", accountName)
                         .queryParam("withdrawAmount", depositAmount);
-        String withdrawOutcome = webTarget.request().post(Entity.text("")).readEntity(String.class);
+//        String withdrawOutcome = webTarget.request().post(Entity.text("")).readEntity(String.class);
+        URI lraId = Current.peek();
+        log.info("withdraw lraId = " + lraId);
+        String withdrawOutcome =
+                webTarget.request().header(org.eclipse.microprofile.lra.annotation.ws.rs.LRA.LRA_HTTP_CONTEXT_HEADER,lraId)
+                        .post(Entity.text("")).getEntity().toString();
         return withdrawOutcome;
     }
     private String deposit(String accountName, long depositAmount) {
@@ -74,8 +91,13 @@ public class TransferService {
                 ClientBuilder.newClient().target(depositUri).path("/")
                         .queryParam("accountName", accountName)
                         .queryParam("depositAmount", depositAmount);
-        String withdrawOutcome = webTarget.request().post(Entity.text("")).readEntity(String.class);
-        return withdrawOutcome;
+        URI lraId = Current.peek();
+        log.info("deposit lraId = " + lraId);
+//        String withdrawOutcome = webTarget.request().post(Entity.text("")).readEntity(String.class);
+        String depositOutcome =
+                webTarget.request().header(org.eclipse.microprofile.lra.annotation.ws.rs.LRA.LRA_HTTP_CONTEXT_HEADER,lraId)
+                        .post(Entity.text("")).getEntity().toString();
+        return depositOutcome;
     }
 
 }
