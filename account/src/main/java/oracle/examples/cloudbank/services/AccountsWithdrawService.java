@@ -5,8 +5,6 @@ import oracle.examples.cloudbank.model.Journal;
 import org.eclipse.microprofile.lra.annotation.*;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.*;

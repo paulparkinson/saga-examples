@@ -43,6 +43,7 @@ public class AccountsDepositService {
     @Path("/deposit")
     @Produces(MediaType.APPLICATION_JSON)
     @LRA(value = LRA.Type.MANDATORY, end = false)
+    @Transactional
     public Response deposit(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
                               @QueryParam("accountId") long accountId,
                             @QueryParam("amount") long depositAmount) {
@@ -61,6 +62,7 @@ public class AccountsDepositService {
     @Path("/complete")
     @Produces(MediaType.APPLICATION_JSON)
     @Complete
+    @Transactional
     public Response completeWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws Exception {
         log.info("deposit complete called for LRA : " + lraId);
         //get the journal and account...

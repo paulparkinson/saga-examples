@@ -25,12 +25,14 @@ public class Journal {
     /**
      * Eg withdraw or deposit
      */
+    @Id
     @Column(name = "JOURNAL_TYPE")
     private String journalType;
 
     @Column(name = "ACCOUNT_ID")
     private long accountId;
 
+    @Id
     @Column(name = "LRA_ID")
     private String lraId;
 
