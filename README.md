@@ -24,7 +24,8 @@ curl -X POST -H "Content-Type: application/json" -d '{"accountName": "testpaul2@
 ```
 curl -X POST "http://localhost:8080/transfer?fromAccount=testpaul1@example.com&toAccount=testpaul2@example.com&Amount=100"
 ```
-
+curl -X POST "http://localhost:8080/transfer?fromAccount=testpaul1&toAccount=testpaul2&Amount=100"
+transfer status:withdraw succeededdeposit succeeded%
 
 
 
@@ -35,6 +36,6 @@ Cleanup. You can query the account and delete in the following way...
 curl -X DELETE http://129.158.244.40/api/v1/account/63
 ```
 ```
-curl  http://129.158.244.40/api/v1//account/getAccountsByCustomerName/testpaul1@example.com
+curl  http://129.158.244.40/api/v1/account/getAccountsByCustomerName/testpaul1@example.com
 ```
-
+[{"accountId":64,"accountName":"testpaul1@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}]%   

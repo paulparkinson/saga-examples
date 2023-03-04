@@ -67,7 +67,7 @@ public class TransferService {
         returnString += withdraw(fromAccount, amount);
         log.info(returnString);
         if (returnString.contains("succeeded")) {
-            returnString += deposit(toAccount, amount);
+            returnString += " " + deposit(toAccount, amount);
             log.info(returnString);
             if (returnString.contains("failed")) isCompensate = true; //deposit failed
         } else isCompensate = true; //withdraw failed

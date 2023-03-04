@@ -56,9 +56,9 @@ public class AccountsAdminService {
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             }
     }
-    @GetMapping("/account/getAccountsByCustomerName/{customerId}")
+    @GetMapping("/account/getAccountsByCustomerName/{customerName}")
     public ResponseEntity<List<Account>> getAccountsByCustomerName(@PathVariable("customerName") String customerName) {
-        log.info("ACCOUNT: getAccountsByCustomerId");
+        log.info("ACCOUNT: getAccountsByCustomerName:" + customerName);
         try {
             List<Account> accountData = new ArrayList<Account>();
             accountData.addAll(accountRepository.findAccountsByAccountNameContains(customerName));
