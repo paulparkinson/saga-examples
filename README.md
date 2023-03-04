@@ -1,68 +1,40 @@
 
-To Install:
-oractl commands..
-create --appName cloudbank
-bind --appName application --serviceName account
-deploy --appName cloudbank --serviceName account --jarLocation cloudbank/account/target/account.jar --isRedeploy false
-deploy --appName application --serviceName transfer --jarLocation cloudbank/transfer/target/transfer.jar --isRedeploy false
+2 services: transfer and account
+No state is held in the services and so the account service can be scaled, crashed, etc. thus providing HA
+account is accessible via internet, transfer is not.
+
+Calls are made to the transfer account `tranfer method` providing a fromAccount, toAccount, and amount.
+The tranfer service then makes a call to the account service `withdraw` method for the `fromAccount` and, if successful, makes a call to the account service `deposit` method for the `toAccount`
+
+1. create two accounts and add balances to them. Eg (replacing the accountName with one of your own)...
+
+```
+curl -X POST -H "Content-Type: application/json" -d '{"accountName": "testpaul1@example.com", "accountBalance": 1000}' http://129.158.244.40/api/v1/accountWithBalance/
+```
+{"accountId":64,"accountName":"testpaul1@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}%
+```
+curl -X POST -H "Content-Type: application/json" -d '{"accountName": "testpaul2@example.com", "accountBalance": 1000}}' http://129.158.244.40/api/v1/accountWithBalance/
+```
+{"accountId":65,"accountName":"testpaul2@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}%
+
+2. start port-forward for transfer service
+   kubectl port-forward services/transfer -n application 8080:8080
+
+3. make a transfer request
+```
+curl -X POST "http://localhost:8080/transfer?fromAccount=testpaul1@example.com&toAccount=testpaul2@example.com&Amount=100"
+```
 
 
-Sample Run:
-$ curl http://account.cloudbank.svc.cluster.local:8082/accountService/api/account
-[]
-$ curl http://transfer.cloudbank.svc.cluster.local:8081/trip-service/api/trip
-[]
 
-$ curl -X POST -d '' http://transfer.cloudbank.svc.cluster.local:8081/trip-service/api/trip?accountName=Mercury&accountNumber=A123
 
-{
-"details": [{
-"encodedId": "http%3A%2F%2Fotmm-tcs.otmm.svc.cluster.local%3A9000%2Fapi%2Fv1%2Flra-coordinator%2F64fc621a-1521-4bae-a481-975061cf4bda",
-"id": "http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator/64fc621a-1521-4bae-a481-975061cf4bda",
-"name": "Mercury",
-"status": "PROVISIONAL",
-"type": "Hotel"
-}, {
-"details": [],
-"encodedId": "http%3A%2F%2Fotmm-tcs.otmm.svc.cluster.local%3A9000%2Fapi%2Fv1%2Flra-coordinator%2F64fc621a-1521-4bae-a481-975061cf4bda",
-"id": "http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator/64fc621a-1521-4bae-a481-975061cf4bda",
-"name": "A123",
-"status": "PROVISIONAL",
-"type": "Flight"
-}],
-"encodedId": "http%3A%2F%2Fotmm-tcs.otmm.svc.cluster.local%3A9000%2Fapi%2Fv1%2Flra-coordinator%2F64fc621a-1521-4bae-a481-975061cf4bda",
-"id": "http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator/64fc621a-1521-4bae-a481-975061cf4bda",
-"name": "Trip",
-"status": "PROVISIONAL",
-"type": "Trip"
-}
 
-//Confirm the Booking
 
-$ curl --location --request PUT -H "Long-Running-Action: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator/64fc621a-1521-4bae-a481-975061cf4bda" -d '' http://transfer.cloudbank.svc.cluster.local:8081/trip-service/api/trip/http%3A%2F%2Fotmm-tcs.otmm.svc.cluster
-.local%3A9000%2Fapi%2Fv1%2Flra-coordinator%2F64fc621a-1521-4bae-a481-975061cf4bda
+Cleanup. You can query the account and delete in the following way...
+```
+curl -X DELETE http://129.158.244.40/api/v1/account/63
+```
+```
+curl  http://129.158.244.40/api/v1//account/getAccountsByCustomerName/testpaul1@example.com
+```
 
-//Get the Booking Details
-$ curl http://transfer.cloudbank.svc.cluster.local:8081/trip-service/api/trip
-
-[{
-"details": [{
-"encodedId": "http%3A%2F%2Fotmm-tcs.otmm.svc.cluster.local%3A9000%2Fapi%2Fv1%2Flra-coordinator%2F64fc621a-1521-4bae-a481-975061cf4bda",
-"id": "http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator/64fc621a-1521-4bae-a481-975061cf4bda",
-"name": "Mercury",
-"status": "CONFIRMED",
-"type": "Hotel"
-}, {
-"details": [],
-"encodedId": "http%3A%2F%2Fotmm-tcs.otmm.svc.cluster.local%3A9000%2Fapi%2Fv1%2Flra-coordinator%2F64fc621a-1521-4bae-a481-975061cf4bda",
-"id": "http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator/64fc621a-1521-4bae-a481-975061cf4bda",
-"name": "A123",
-"status": "CONFIRMED",
-"type": "Flight"
-}],
-"encodedId": "http%3A%2F%2Fotmm-tcs.otmm.svc.cluster.local%3A9000%2Fapi%2Fv1%2Flra-coordinator%2F64fc621a-1521-4bae-a481-975061cf4bda",
-"id": "http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator/64fc621a-1521-4bae-a481-975061cf4bda",
-"name": "Trip",
-"status": "CONFIRMED",
-"type": "Trip"
-}]

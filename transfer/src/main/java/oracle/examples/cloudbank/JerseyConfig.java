@@ -14,8 +14,6 @@ public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig()  {
         register(TransferService.class);
-        register(io.narayana.lra.filter.ClientLRARequestFilter.class);
-        register(io.narayana.lra.filter.ClientLRAResponseFilter.class);
         register(io.narayana.lra.filter.ServerLRAFilter.class);
         register(new AbstractBinder(){
             @Override

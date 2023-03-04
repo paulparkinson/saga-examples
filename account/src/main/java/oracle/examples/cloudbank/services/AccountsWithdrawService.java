@@ -34,6 +34,8 @@ public class AccountsWithdrawService {
                             @QueryParam("accountName") String accountName,
                             @QueryParam("amount") long withdrawAmount)  {
         log.info("withdraw " + withdrawAmount + " in account:" + accountName + " (lraId:" + lraId + ")...");
+        AccountLRAUtils.instance().saveJournal(new Journal(WITHDRAW, accountName, withdrawAmount, lraId,
+                AccountLRAUtils.getStatusString(ParticipantStatus.Active)));
         Account account = AccountLRAUtils.instance().getAccountForAccountName(accountName);
         if (account==null) {
             log.info("withdraw failed: account does not exist");
@@ -45,8 +47,6 @@ public class AccountsWithdrawService {
         }
         account.setAccountBalance(account.getAccountBalance() - withdrawAmount);
         AccountLRAUtils.instance().saveAccount(account);
-        AccountLRAUtils.instance().saveJournal(new Journal(WITHDRAW, accountName, withdrawAmount, lraId,
-                AccountLRAUtils.getStatusString(ParticipantStatus.Active)));
         return Response.ok("withdraw succeeded").build();
     }
 
@@ -70,12 +70,14 @@ public class AccountsWithdrawService {
     @Produces(MediaType.APPLICATION_JSON)
     @Compensate
     public Response compensateWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws Exception {
-        log.info("Account Resource compensate() called for LRA : " + lraId);
+        log.info("Account withdraw compensate() called for LRA : " + lraId);
         Journal journal = AccountLRAUtils.instance().getJournalForLRAid(lraId);
-        Account account = AccountLRAUtils.instance().getAccountForAccountName(journal.getAccountName());
         journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Compensating));
-        account.setAccountBalance(account.getAccountBalance() + journal.getJournalAmount());
-        AccountLRAUtils.instance().saveAccount(account);
+        Account account = AccountLRAUtils.instance().getAccountForAccountName(journal.getAccountName());
+        if (account != null) {
+            account.setAccountBalance(account.getAccountBalance() + journal.getJournalAmount());
+            AccountLRAUtils.instance().saveAccount(account);
+        }
         journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Compensated));
         AccountLRAUtils.instance().saveJournal(journal);
         return Response.ok(ParticipantStatus.Compensated.name()).build();

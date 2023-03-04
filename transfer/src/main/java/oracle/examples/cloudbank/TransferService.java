@@ -6,11 +6,9 @@ import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.*;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
@@ -23,12 +21,12 @@ import java.util.logging.Logger;
 
 import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.LRA_HTTP_CONTEXT_HEADER;
 
-//@RequestScoped//
 @ApplicationScoped
 @Path("/")
 public class TransferService {
 
     private static final Logger log = Logger.getLogger(TransferService.class.getSimpleName());
+    public static final String TRANSFER_ID = "TRANSFER_ID";
     private URI withdrawUri;
     private URI depositUri;
     private URI transferCancelUri;
@@ -49,14 +47,6 @@ public class TransferService {
         }
     }
 
-    @GET
-    @Path("/test")
-    @Produces(MediaType.APPLICATION_JSON)
-//    @LRA(value = LRA.Type.REQUIRES_NEW)
-    public Response test() {
-        System.out.println("TransferService.test...");
-        return Response.ok().entity("test success").build();
-    }
     @POST
     @Path("/transfer")
     @Produces(MediaType.APPLICATION_JSON)
@@ -83,8 +73,8 @@ public class TransferService {
         } else isCompensate = true; //withdraw failed
         log.info("LRA/transfer action will be " + (isCompensate?"cancel":"confirm"));
         WebTarget webTarget = ClientBuilder.newClient().target(isCompensate?transferCancelUri:transferConfirmUri);
-        webTarget.request().header(LRA_HTTP_CONTEXT_HEADER,lraId).header("mytestheader","mytestvalue")
-                .post(Entity.text("")).getEntity().toString();
+        webTarget.request().header(TRANSFER_ID, lraId)
+                .post(Entity.text("")).readEntity(String.class);
         return Response.ok("transfer status:" + returnString).build();
 
     }
@@ -99,7 +89,7 @@ public class TransferService {
         log.info("withdraw lraId = " + lraId);
         String withdrawOutcome =
                 webTarget.request().header(LRA_HTTP_CONTEXT_HEADER,lraId)
-                        .post(Entity.text("")).getEntity().toString();
+                        .post(Entity.text("")).readEntity(String.class);
         return withdrawOutcome;
     }
     private String deposit(String accountName, long depositAmount) {
@@ -112,7 +102,7 @@ public class TransferService {
         log.info("deposit lraId = " + lraId);
         String depositOutcome =
                 webTarget.request().header(LRA_HTTP_CONTEXT_HEADER,lraId)
-                        .post(Entity.text("")).getEntity().toString();
+                        .post(Entity.text("")).readEntity(String.class);;
         return depositOutcome;
     }
 
@@ -131,7 +121,7 @@ public class TransferService {
     @POST
     @Path("/processcancel")
     @Produces(MediaType.APPLICATION_JSON)
-    @LRA(value = LRA.Type.MANDATORY)
+    @LRA(value = LRA.Type.MANDATORY, cancelOn = Response.Status.OK)
     public Response processcancel(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws NotFoundException {
         log.info("Process cancel for transfer : " + lraId);
         return Response.ok().build();
@@ -149,14 +139,12 @@ public class TransferService {
     @Path("/confirm")
     @Produces(MediaType.APPLICATION_JSON)
     @LRA(value = LRA.Type.NOT_SUPPORTED)
-    public Response confirm(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
-                            @HeaderParam("mytestheader") String mytestheader) throws NotFoundException {
-        log.info("Received Confirmation for transfer : " + lraId);
-        log.info("Received Confirmation for transfer mytestheader: " + mytestheader);
+    public Response confirm(@HeaderParam(TRANSFER_ID) String transferId) throws NotFoundException {
+        log.info("Received confirm for transfer : " + transferId);
         String confirmOutcome =
                 ClientBuilder.newClient().target(transferProcessConfirmUri).request()
-                        .header(LRA_HTTP_CONTEXT_HEADER,lraId)
-                        .post(Entity.text("")).getEntity().toString();
+                        .header(LRA_HTTP_CONTEXT_HEADER, transferId)
+                        .post(Entity.text("")).readEntity(String.class);
         return Response.ok(confirmOutcome).build();
     }
 
@@ -164,14 +152,12 @@ public class TransferService {
     @Path("/cancel")
     @Produces(MediaType.APPLICATION_JSON)
     @LRA(value = LRA.Type.NOT_SUPPORTED, cancelOn = Response.Status.OK)
-    public Response cancel(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
-                           @HeaderParam("mytestheader") String mytestheader) throws NotFoundException {
-        log.info("Received Confirmation for transfer : " + lraId);
-        log.info("Received Confirmation for transfer mytestheader: " + mytestheader);
+    public Response cancel(@HeaderParam(TRANSFER_ID) String transferId) throws NotFoundException {
+        log.info("Received cancel for transfer : " + transferId);
         String confirmOutcome =
                 ClientBuilder.newClient().target(transferProcessCancelUri).request()
-                        .header(LRA_HTTP_CONTEXT_HEADER,lraId)
-                        .post(Entity.text("")).getEntity().toString();
+                        .header(LRA_HTTP_CONTEXT_HEADER, transferId)
+                        .post(Entity.text("")).readEntity(String.class);
         return Response.ok(confirmOutcome).build();
     }
 

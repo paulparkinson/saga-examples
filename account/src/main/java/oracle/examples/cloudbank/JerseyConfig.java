@@ -15,11 +15,9 @@ import java.net.URISyntaxException;
 @ApplicationPath("/")
 public class JerseyConfig extends ResourceConfig {
 
-    public JerseyConfig() throws URISyntaxException {
+    public JerseyConfig()  {
         register(AccountsDepositService.class);
         register(AccountsWithdrawService.class);
-        register(io.narayana.lra.filter.ClientLRARequestFilter.class);
-        register(io.narayana.lra.filter.ClientLRAResponseFilter.class);
         register(io.narayana.lra.filter.ServerLRAFilter.class);
         register(new AbstractBinder(){
             @Override
