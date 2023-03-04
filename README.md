@@ -1,55 +1,108 @@
-
-2 services: transfer and account
-No state is held in the services and so the account service can be scaled, crashed, etc. thus providing HA
-account is accessible via internet, transfer is not.
-
-Calls are made to the transfer account `tranfer method` providing a fromAccount, toAccount, and amount.
-The tranfer service then makes a call to the account service `withdraw` method for the `fromAccount` and, if successful, makes a call to the account service `deposit` method for the `toAccount`
-
-1. create two accounts and add balances to them. Eg (replacing the accountName with one of your own)...
-
+```  
+curl  http://129.158.244.40/api/v1/account/66 | json_pp ; curl  http://129.158.244.40/api/v1/account/67 | json_pp
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"accountName": "testpaul1@example.com", "accountBalance": 1000}' http://129.158.244.40/api/v1/accountWithBalance/
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+Dload  Upload   Total   Spent    Left  Speed
+100   161    0   161    0     0    364      0 --:--:-- --:--:-- --:--:--   370
+{
+"accountBalance" : 10800,
+"accountCustomerId" : null,
+"accountId" : 66,
+"accountName" : "testpaul1",
+"accountOpenedDate" : null,
+"accountOtherDetails" : null,
+"accountType" : null
+}
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+Dload  Upload   Total   Spent    Left  Speed
+100   161    0   161    0     0   1410      0 --:--:-- --:--:-- --:--:--  1490
+{
+"accountBalance" : 10800,
+"accountCustomerId" : null,
+"accountId" : 67,
+"accountName" : "testpaul2",
+"accountOpenedDate" : null,
+"accountOtherDetails" : null,
+"accountType" : null
+}
+``` 
+curl -X POST "http://localhost:8080/transfer?fromAccount=66&toAccount=67&amount=100"     
+```                         
+transfer status:withdraw succeeded deposit succeeded%                                                                                                                          
+```  
+curl  http://129.158.244.40/api/v1/account/66 | json_pp ; curl  http://129.158.244.40/api/v1/account/67 | json_pp
 ```
-{"accountId":64,"accountName":"testpaul1@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}%
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+Dload  Upload   Total   Spent    Left  Speed
+100   161    0   161    0     0   1264      0 --:--:-- --:--:-- --:--:--  1330
+{
+"accountBalance" : 10700,
+"accountCustomerId" : null,
+"accountId" : 66,
+"accountName" : "testpaul1",
+```  
+curl  http://129.158.244.40/api/v1/account/66 | json_pp ; curl  http://129.158.244.40/api/v1/account/67 | json_pp
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"accountName": "testpaul2@example.com", "accountBalance": 1000}}' http://129.158.244.40/api/v1/accountWithBalance/
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+Dload  Upload   Total   Spent    Left  Speed
+100   161    0   161    0     0    368      0 --:--:-- --:--:-- --:--:--   371
+{
+"accountBalance" : 10800,
+"accountCustomerId" : null,
+"accountId" : 66,
+"accountName" : "testpaul1",
+"accountOpenedDate" : null,
+"accountOtherDetails" : null,
+"accountType" : null
+}
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+Dload  Upload   Total   Spent    Left  Speed
+100   161    0   161    0     0   1304      0 --:--:-- --:--:-- --:--:--  1387
+{
+"accountBalance" : 10800,
+"accountCustomerId" : null,
+"accountId" : 67,
+"accountName" : "testpaul2",
+"accountOpenedDate" : null,
+"accountOtherDetails" : null,
+"accountType" : null
+}
+``` 
+curl -X POST "http://localhost:8080/transfer?fromAccount=66&toAccount=67&amount=100" 
+```                             
+transfer status:withdraw succeeded deposit succeeded%                                                                                                                          
+```  
+curl  http://129.158.244.40/api/v1/account/66 | json_pp ; curl  http://129.158.244.40/api/v1/account/67 | json_pp
 ```
-{"accountId":65,"accountName":"testpaul2@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}%
-
-2. start port-forward for transfer service
-   kubectl port-forward services/transfer -n application 8080:8080
-
-3. make a transfer request
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+Dload  Upload   Total   Spent    Left  Speed
+100   161    0   161    0     0   1414      0 --:--:-- --:--:-- --:--:--  1490
+{
+"accountBalance" : 10700,
+"accountCustomerId" : null,
+"accountId" : 66,
+"accountName" : "testpaul1",
+"accountOpenedDate" : null,
+"accountOtherDetails" : null,
+"accountType" : null
+}
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+Dload  Upload   Total   Spent    Left  Speed
+100   161    0   161    0     0   1312      0 --:--:-- --:--:-- --:--:--  1412
+{
+"accountBalance" : 10900,
+"accountCustomerId" : null,
+"accountId" : 67,
+"accountName" : "testpaul2",
+"accountOpenedDate" : null,
+"accountOtherDetails" : null,
+"accountType" : null
+}
+``` 
+curl -X POST "http://localhost:8080/transfer?fromAccount=66&toAccount=67&amount=100000"      
+```                     
+transfer status:withdraw failed: insufficient funds%                                                                                                                           
+``` 
+curl -X POST "http://localhost:8080/transfer?fromAccount=66&toAccount=6799999&amount=100"
 ```
-curl -X POST "http://localhost:8080/transfer?fromAccount=testpaul1@example.com&toAccount=testpaul2@example.com&Amount=100"
-```
-curl -X POST "http://localhost:8080/transfer?fromAccount=testpaul1&toAccount=testpaul2&Amount=100"
-transfer status:withdraw succeededdeposit succeeded%
-
-
-
-
-
-Cleanup. You can query the account and delete in the following way...
-```
-curl -X DELETE http://129.158.244.40/api/v1/account/63
-```
-```
-curl  http://129.158.244.40/api/v1/account/getAccountsByCustomerName/testpaul1@example.com
-```
-[{"accountId":64,"accountName":"testpaul1@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}]%   
-
-
-
-
-pparkins@pparkins-mac saga-examples % curl -X POST -H "Content-Type: application/json" -d '{"accountName": "testpaul1", "accountBalance": 1000}' http://129.158.244.40/api/v1/accountWithBalance/
-{"accountId":66,"accountName":"testpaul1","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}%                                                                                                                                                             
-pparkins@pparkins-mac saga-examples % curl -X POST -H "Content-Type: application/json" -d '{"accountName": "testpaul2", "accountBalance": 1000}' http://129.158.244.40/api/v1/accountWithBalance/
-{"accountId":67,"accountName":"testpaul2","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}%                                                                                                                                                             
-pparkins@pparkins-mac saga-examples % curl -X POST "http://localhost:8080/transfer?fromAccount=testpaul1&toAccount=testpaul2&Amount=100"
-transfer status:withdraw succeededdeposit succeeded%                                                                                                           
-pparkins@pparkins-mac saga-examples % curl  http://129.158.244.40/api/v1/account/getAccountsByCustomerName/testpaul1            
-[{"accountId":66,"accountName":"testpaul1","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000},{"accountId":64,"accountName":"testpaul1@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}]%                                                                                                                                             
-pparkins@pparkins-mac saga-examples % curl  http://129.158.244.40/api/v1/account/getAccountsByCustomerName/testpaul2
-[{"accountId":67,"accountName":"testpaul2","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000},{"accountId":65,"accountName":"testpaul2@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}]%                                            
+transfer status:withdraw succeeded deposit failed: account does not exist%                                                                                                     
