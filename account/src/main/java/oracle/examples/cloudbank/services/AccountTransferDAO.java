@@ -5,14 +5,16 @@ import oracle.examples.cloudbank.model.Journal;
 import oracle.examples.cloudbank.repository.AccountRepository;
 import oracle.examples.cloudbank.repository.JournalRepository;
 import org.eclipse.microprofile.lra.annotation.ParticipantStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 
 @Component
 public class AccountTransferDAO {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private static AccountTransferDAO singleton;
     final AccountRepository accountRepository;
@@ -71,44 +73,41 @@ public class AccountTransferDAO {
     }
 
     public void saveAccount(Account account) {
+        log.info("saveAccount account" + account.getAccountId() + " account" + account.getAccountBalance());
         accountRepository.save(account);
     }
 
-    public  Response status(String lraId) throws Exception {
-        Journal journal = getJournalForLRAid(lraId);
+    public  Response status(String lraId, String journalType) throws Exception {
+        Journal journal = getJournalForLRAid(lraId, journalType);
         if (AccountTransferDAO.getStatusFromString(journal.getLraState()).equals(ParticipantStatus.Compensated))
             return Response.ok(ParticipantStatus.Compensated).build();
         else return Response.ok(ParticipantStatus.Completed).build();
     }
 
-    public void afterLRA(String lraId, String status) throws Exception {
-        Journal journal = getJournalForLRAid(lraId);
+    public void afterLRA(String lraId, String status, String journalType) throws Exception {
+        Journal journal = getJournalForLRAid(lraId, journalType);
         journal.setLraState(status);
         journalRepository.save(journal);
     }
 
      Account getAccountForJournal(Journal journal) throws Exception {
-//        List<Account> accounts = accountRepository.findByAccountId(journal.getAccountId());
         Account account = accountRepository.findByAccountId(journal.getAccountId());
         if (account == null) throw new Exception("Invalid accountName:" + journal.getAccountId());
         return account;
     }
      Account getAccountForAccountId(long accountId)  {
-//         List<Account> accounts = accountRepository.findByAccountId(accountId);
          Account account = accountRepository.findByAccountId(accountId);
          if (account == null) return null;
          return account;
     }
 
-     Journal getJournalForLRAid(String lraId) throws Exception {
-        Journal journal;
-        List<Journal> journals = journalRepository.findJournalByLraId(lraId);
-        if (journals.size() == 0) {
+     Journal getJournalForLRAid(String lraId, String journalType) throws Exception {
+        Journal journal = journalRepository.findJournalByLraIdAndJournalType(lraId, journalType);
+        if (journal == null) {
             journalRepository.save(new Journal("unknown", -1, 0, lraId,
                     AccountTransferDAO.getStatusString(ParticipantStatus.FailedToComplete)));
             throw new Exception("Journal entry does not exist for lraId:" + lraId);
         }
-        journal = journals.get(0);
         return journal;
     }
 

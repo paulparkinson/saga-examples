@@ -16,7 +16,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.Oracle12cDialect
         format_sql: true
-    show-sql: true
+    show-sql: false
 
   # Datasource Configuration - url, username and password needs to go into Vault
   datasource:

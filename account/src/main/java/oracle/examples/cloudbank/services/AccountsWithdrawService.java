@@ -5,6 +5,7 @@ import oracle.examples.cloudbank.model.Journal;
 import org.eclipse.microprofile.lra.annotation.*;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.*;
@@ -28,7 +29,7 @@ public class AccountsWithdrawService {
     @Path("/withdraw")
     @Produces(MediaType.APPLICATION_JSON)
     @LRA(value = LRA.Type.MANDATORY, end = false)
-//    @Transactional
+    @Transactional
     public Response withdraw(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
                             @QueryParam("accountId") long accountId,
                             @QueryParam("amount") long withdrawAmount)  {
@@ -60,7 +61,7 @@ public class AccountsWithdrawService {
     @Complete
     public Response completeWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws Exception {
         log.info("withdraw complete called for LRA : " + lraId);
-        Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId);
+        Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId, WITHDRAW);
         journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Completed));
         AccountTransferDAO.instance().saveJournal(journal);
         return Response.ok(ParticipantStatus.Completed.name()).build();
@@ -75,7 +76,7 @@ public class AccountsWithdrawService {
     @Compensate
     public Response compensateWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws Exception {
         log.info("Account withdraw compensate() called for LRA : " + lraId);
-        Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId);
+        Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId, WITHDRAW);
         journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Compensating));
         Account account = AccountTransferDAO.instance().getAccountForAccountId(journal.getAccountId());
         if (account != null) {
@@ -93,7 +94,7 @@ public class AccountsWithdrawService {
     @Status
     public Response status(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
                            @HeaderParam(LRA_HTTP_PARENT_CONTEXT_HEADER) String parentLRA) throws Exception {
-        return AccountTransferDAO.instance().status(lraId);
+        return AccountTransferDAO.instance().status(lraId, WITHDRAW);
     }
 
     /**
@@ -105,7 +106,7 @@ public class AccountsWithdrawService {
     @Consumes(MediaType.TEXT_PLAIN)
     public Response afterLRA(@HeaderParam(LRA_HTTP_ENDED_CONTEXT_HEADER) String lraId, String status) throws Exception {
         log.info("After LRA Called : " + lraId);
-        AccountTransferDAO.instance().afterLRA(lraId, status);
+        AccountTransferDAO.instance().afterLRA(lraId, status, WITHDRAW);
         return Response.ok().build();
     }
 

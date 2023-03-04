@@ -65,7 +65,7 @@ public class AccountsDepositService {
     public Response completeWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws Exception {
         log.info("deposit complete called for LRA : " + lraId);
         //get the journal and account...
-        Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId);
+        Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId, DEPOSIT);
         Account account= AccountTransferDAO.instance().getAccountForJournal(journal);
         journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Completing));
         //update the account balance and journal entry...
@@ -85,7 +85,7 @@ public class AccountsDepositService {
     @Compensate
     public Response compensateWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws Exception {
         log.info("deposit compensate called for LRA : " + lraId);
-        Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId);
+        Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId, DEPOSIT);
         journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Compensated));
         AccountTransferDAO.instance().saveJournal(journal);
         return Response.ok(ParticipantStatus.Compensated.name()).build();
@@ -100,7 +100,7 @@ public class AccountsDepositService {
     @Status
     public Response status(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
                            @HeaderParam(LRA_HTTP_PARENT_CONTEXT_HEADER) String parentLRA) throws Exception {
-        return AccountTransferDAO.instance().status(lraId);
+        return AccountTransferDAO.instance().status(lraId, DEPOSIT);
     }
 
     /**
@@ -112,7 +112,7 @@ public class AccountsDepositService {
     @Consumes(MediaType.TEXT_PLAIN)
     public Response afterLRA(@HeaderParam(LRA_HTTP_ENDED_CONTEXT_HEADER) String lraId, String status) throws Exception {
         log.info("After LRA Called : " + lraId);
-        AccountTransferDAO.instance().afterLRA(lraId, status);
+        AccountTransferDAO.instance().afterLRA(lraId, status, DEPOSIT);
         return Response.ok().build();
     }
 
