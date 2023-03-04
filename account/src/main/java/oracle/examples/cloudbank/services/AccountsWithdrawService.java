@@ -32,15 +32,17 @@ public class AccountsWithdrawService {
                             @QueryParam("accountId") long accountId,
                             @QueryParam("amount") long withdrawAmount)  {
         log.info("withdraw " + withdrawAmount + " in account:" + accountId + " (lraId:" + lraId + ")...");
-        AccountTransferDAO.instance().saveJournal(new Journal(WITHDRAW, accountId, 0, lraId,
-                AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
         Account account = AccountTransferDAO.instance().getAccountForAccountId(accountId);
         if (account==null) {
             log.info("withdraw failed: account does not exist");
+            AccountTransferDAO.instance().saveJournal(new Journal(WITHDRAW, accountId, 0, lraId,
+                    AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
             return Response.ok("withdraw failed: account does not exist").build();
         }
         if (account.getAccountBalance() < withdrawAmount) {
             log.info("withdraw failed: insufficient funds");
+            AccountTransferDAO.instance().saveJournal(new Journal(WITHDRAW, accountId, 0, lraId,
+                    AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
             return Response.ok("withdraw failed: insufficient funds").build();
         }
         log.info("withdraw current balance:" + account.getAccountBalance() +

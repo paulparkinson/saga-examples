@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * A separate blockchain table could be used for the ledger aspects but currently this Journal serves multiple purposes:
@@ -15,7 +16,7 @@ import javax.persistence.*;
 @Table(name = "JOURNAL")
 @Data
 @NoArgsConstructor
-public class Journal {
+public class Journal  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,14 +26,12 @@ public class Journal {
     /**
      * Eg withdraw or deposit
      */
-    @Id
     @Column(name = "JOURNAL_TYPE")
     private String journalType;
 
     @Column(name = "ACCOUNT_ID")
     private long accountId;
 
-    @Id
     @Column(name = "LRA_ID")
     private String lraId;
 

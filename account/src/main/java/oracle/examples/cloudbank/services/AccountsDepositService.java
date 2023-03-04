@@ -47,10 +47,17 @@ public class AccountsDepositService {
     public Response deposit(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
                               @QueryParam("accountId") long accountId,
                             @QueryParam("amount") long depositAmount) {
-        AccountTransferDAO.instance().saveJournal(new Journal(DEPOSIT, accountId, depositAmount, lraId,
-                AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
         log.info("...deposit " + depositAmount + " in account:" + accountId +
                 " (lraId:" + lraId + ") finished (in pending state)");
+        Account account = AccountTransferDAO.instance().getAccountForAccountId(accountId);
+        if (account==null) {
+            log.info("withdraw failed: account does not exist");
+            AccountTransferDAO.instance().saveJournal(new Journal(DEPOSIT, accountId, 0, lraId,
+                    AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
+            return Response.ok("deposit failed: account does not exist").build();
+        }
+        AccountTransferDAO.instance().saveJournal(new Journal(DEPOSIT, accountId, depositAmount, lraId,
+                AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
         return Response.ok("deposit succeeded").build();
     }
 
