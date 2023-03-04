@@ -2,6 +2,7 @@ package oracle.examples.cloudbank;
 
 import io.narayana.lra.client.internal.proxy.nonjaxrs.LRAParticipantRegistry;
 import oracle.examples.cloudbank.services.AccountsDepositService;
+import oracle.examples.cloudbank.services.AccountsWithdrawService;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletProperties;
@@ -16,6 +17,7 @@ public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() throws URISyntaxException {
         register(AccountsDepositService.class);
+        register(AccountsWithdrawService.class);
         register(io.narayana.lra.filter.ClientLRARequestFilter.class);
         register(io.narayana.lra.filter.ClientLRAResponseFilter.class);
         register(io.narayana.lra.filter.ServerLRAFilter.class);

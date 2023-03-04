@@ -32,7 +32,7 @@ public class AccountsAdminService {
     // Get Account with specific Account ID
     @GetMapping("/account/{accountId}")
     public ResponseEntity<Account> getAccountById(@PathVariable("accountId") long accountId) {
-        log.info("ACCOUNT: getAccountById accountId:" + accountId);
+        log.info("ACCOUNT: getAccountById:" + accountId);
         Optional<Account> accountData = accountRepository.findById(accountId);
         try {
             return accountData.map(account -> new ResponseEntity<>(account, HttpStatus.OK))
@@ -40,11 +40,6 @@ public class AccountsAdminService {
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-    @GetMapping("/test/{accountId}")
-    public ResponseEntity<String> test(@PathVariable("accountId") long accountId) {
-        log.info("test: accountId");
-        return new ResponseEntity<>("testsuccessful", HttpStatus.OK);
     }
 
     @GetMapping("/account/getAccounts/{customerId}")

@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: accounts
+    name: account
   jersey:
     type: filter
 

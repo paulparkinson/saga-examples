@@ -1,17 +1,13 @@
 package oracle.examples.cloudbank.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import oracle.examples.cloudbank.model.Account;
 import oracle.examples.cloudbank.model.Journal;
-import oracle.examples.cloudbank.repository.AccountRepository;
-import oracle.examples.cloudbank.repository.JournalRepository;
 import org.eclipse.microprofile.lra.annotation.*;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.enterprise.context.RequestScoped;
-//import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -20,18 +16,11 @@ import java.util.logging.Logger;
 import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.*;
 
 @RequestScoped
-@Path("/account")
+@Path("/withdraw")
 @Component
 public class AccountsWithdrawService {
     private static final Logger log = Logger.getLogger(AccountsWithdrawService.class.getName());
     public static final String WITHDRAW = "WITHDRAW";
-    final AccountRepository accountRepository;
-    final JournalRepository journalRepository;
-
-    public AccountsWithdrawService(AccountRepository accountRepository, JournalRepository journalRepository) {
-        this.accountRepository = accountRepository;
-        this.journalRepository = journalRepository;
-    }
 
     /**
      * Reduce account balance by given amount and write journal entry re the same. Both actions in same local tx
@@ -43,15 +32,22 @@ public class AccountsWithdrawService {
     @Transactional
     public Response withdraw(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
                             @QueryParam("accountName") String accountName,
-                            @QueryParam("withdrawAmount") long withdrawAmount) throws Exception {
+                            @QueryParam("amount") long withdrawAmount)  {
         log.info("withdraw " + withdrawAmount + " in account:" + accountName + " (lraId:" + lraId + ")...");
         Account account = AccountLRAUtils.instance().getAccountForAccountName(accountName);
-        if (account.getAccountBalance() < withdrawAmount) throw new Exception("insufficient funds for withdraw");
+        if (account==null) {
+            log.info("withdraw failed: account does not exist");
+            return Response.ok("withdraw failed: account does not exist").build();
+        }
+        if (account.getAccountBalance() < withdrawAmount) {
+            log.info("withdraw failed: insufficient funds");
+            return Response.ok("withdraw failed: insufficient funds").build();
+        }
         account.setAccountBalance(account.getAccountBalance() - withdrawAmount);
-        accountRepository.save(account);
-        journalRepository.save(new Journal(WITHDRAW, accountName, withdrawAmount, lraId,
+        AccountLRAUtils.instance().saveAccount(account);
+        AccountLRAUtils.instance().saveJournal(new Journal(WITHDRAW, accountName, withdrawAmount, lraId,
                 AccountLRAUtils.getStatusString(ParticipantStatus.Active)));
-        return Response.ok("withdraw successful").build();
+        return Response.ok("withdraw succeeded").build();
     }
 
     /**
@@ -61,9 +57,9 @@ public class AccountsWithdrawService {
     @Path("/complete")
     @Produces(MediaType.APPLICATION_JSON)
     @Complete
-    public Response completeWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws NotFoundException, JsonProcessingException {
+    public Response completeWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws NotFoundException {
         log.info("Account withdraw complete() called for LRA : " + lraId);
-        return Response.ok(ParticipantStatus.FailedToComplete.name()).build();
+        return Response.ok(ParticipantStatus.Completed.name()).build();
     }
 
     /**
@@ -79,9 +75,9 @@ public class AccountsWithdrawService {
         Account account = AccountLRAUtils.instance().getAccountForAccountName(journal.getAccountName());
         journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Compensating));
         account.setAccountBalance(account.getAccountBalance() + journal.getJournalAmount());
-        accountRepository.save(account);
+        AccountLRAUtils.instance().saveAccount(account);
         journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Compensated));
-        journalRepository.save(journal);
+        AccountLRAUtils.instance().saveJournal(journal);
         return Response.ok(ParticipantStatus.Compensated.name()).build();
     }
 

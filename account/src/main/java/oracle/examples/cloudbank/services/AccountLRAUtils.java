@@ -70,6 +70,10 @@ public class AccountLRAUtils {
         }
     }
 
+    public void saveAccount(Account account) {
+        accountRepository.save(account);
+    }
+
     public  Response status(String lraId) throws Exception {
         Journal journal = getJournalForLRAid(lraId);
         if (AccountLRAUtils.getStatusFromString(journal.getLraState()).equals(ParticipantStatus.Compensated))
@@ -90,9 +94,9 @@ public class AccountLRAUtils {
         account = accounts.get(1);
         return account;
     }
-     Account getAccountForAccountName(String accountName) throws Exception {
+     Account getAccountForAccountName(String accountName)  {
          List<Account> accounts = accountRepository.findAccountsByAccountNameContains(accountName);
-         if (accounts.size() == 0) throw new Exception("Invalid accountName:" + accountName);
+         if (accounts.size() == 0) return null;
          return accounts.get(1);
     }
 
@@ -108,4 +112,7 @@ public class AccountLRAUtils {
         return journal;
     }
 
+    public void saveJournal(Journal journal) {
+        journalRepository.save(journal);
+    }
 }

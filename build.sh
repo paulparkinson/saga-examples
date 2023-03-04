@@ -38,3 +38,6 @@ export IMAGE=${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}
 docker build -t=$IMAGE .
 docker push "$IMAGE"
 cd ../
+
+#   iad.ocir.io/maacloud/obaasdev/application-account:0.0.2
+# iad.ocir.io/maacloud/baasdev/cloudbank/account:0.3

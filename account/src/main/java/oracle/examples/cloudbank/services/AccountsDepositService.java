@@ -2,8 +2,6 @@ package oracle.examples.cloudbank.services;
 
 import oracle.examples.cloudbank.model.Account;
 import oracle.examples.cloudbank.model.Journal;
-import oracle.examples.cloudbank.repository.AccountRepository;
-import oracle.examples.cloudbank.repository.JournalRepository;
 import org.eclipse.microprofile.lra.annotation.AfterLRA;
 import org.eclipse.microprofile.lra.annotation.Compensate;
 import org.eclipse.microprofile.lra.annotation.Complete;
@@ -13,8 +11,7 @@ import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.enterprise.context.RequestScoped;
-//import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -31,19 +28,12 @@ import static org.eclipse.microprofile.lra.annotation.ws.rs.LRA.*;
 
 
 @RequestScoped
-@Path("/account")
+@Path("/deposit")
 @Component
 public class AccountsDepositService {
     private static final Logger log = Logger.getLogger(AccountsDepositService.class.getName());
 
-    final AccountRepository accountRepository;
-    final JournalRepository journalRepository;
     private final static String DEPOSIT = "DEPOSIT";
-
-    public AccountsDepositService(AccountRepository accountRepository, JournalRepository journalRepository) {
-        this.accountRepository = accountRepository;
-        this.journalRepository = journalRepository;
-    }
 
     /**
      * Write journal entry re deposit amount.
@@ -56,12 +46,12 @@ public class AccountsDepositService {
     @Transactional
     public Response deposit(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
                               @QueryParam("accountName") String accountName,
-                            @QueryParam("depositAmount") long depositAmount) throws Exception {
-        journalRepository.save(new Journal(DEPOSIT, accountName, depositAmount, lraId,
+                            @QueryParam("amount") long depositAmount) {
+        AccountLRAUtils.instance().saveJournal(new Journal(DEPOSIT, accountName, depositAmount, lraId,
                 AccountLRAUtils.getStatusString(ParticipantStatus.Active)));
         log.info("...deposit " + depositAmount + " in account:" + accountName +
                 " (lraId:" + lraId + ") finished (in pending state)");
-        return Response.ok("deposit successful").build();
+        return Response.ok("deposit succeeded").build();
     }
 
     /**
@@ -80,9 +70,9 @@ public class AccountsDepositService {
         journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Completing));
         //update the account balance and journal entry...
         account.setAccountBalance(account.getAccountBalance() + journal.getJournalAmount());
-        accountRepository.save(account);
+        AccountLRAUtils.instance().saveAccount(account);
         journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Completed));
-        journalRepository.save(journal);
+        AccountLRAUtils.instance().saveJournal(journal);
         return Response.ok(ParticipantStatus.Completed.name()).build();
     }
 
@@ -97,7 +87,7 @@ public class AccountsDepositService {
         log.info("deposit compensate called for LRA : " + lraId);
         Journal journal = AccountLRAUtils.instance().getJournalForLRAid(lraId);
         journal.setLraState(AccountLRAUtils.getStatusString(ParticipantStatus.Compensated));
-        journalRepository.save(journal);
+        AccountLRAUtils.instance().saveJournal(journal);
         return Response.ok(ParticipantStatus.Compensated.name()).build();
     }
 
