@@ -39,3 +39,17 @@ curl -X DELETE http://129.158.244.40/api/v1/account/63
 curl  http://129.158.244.40/api/v1/account/getAccountsByCustomerName/testpaul1@example.com
 ```
 [{"accountId":64,"accountName":"testpaul1@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}]%   
+
+
+
+
+pparkins@pparkins-mac saga-examples % curl -X POST -H "Content-Type: application/json" -d '{"accountName": "testpaul1", "accountBalance": 1000}' http://129.158.244.40/api/v1/accountWithBalance/
+{"accountId":66,"accountName":"testpaul1","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}%                                                                                                                                                             
+pparkins@pparkins-mac saga-examples % curl -X POST -H "Content-Type: application/json" -d '{"accountName": "testpaul2", "accountBalance": 1000}' http://129.158.244.40/api/v1/accountWithBalance/
+{"accountId":67,"accountName":"testpaul2","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}%                                                                                                                                                             
+pparkins@pparkins-mac saga-examples % curl -X POST "http://localhost:8080/transfer?fromAccount=testpaul1&toAccount=testpaul2&Amount=100"
+transfer status:withdraw succeededdeposit succeeded%                                                                                                           
+pparkins@pparkins-mac saga-examples % curl  http://129.158.244.40/api/v1/account/getAccountsByCustomerName/testpaul1            
+[{"accountId":66,"accountName":"testpaul1","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000},{"accountId":64,"accountName":"testpaul1@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}]%                                                                                                                                             
+pparkins@pparkins-mac saga-examples % curl  http://129.158.244.40/api/v1/account/getAccountsByCustomerName/testpaul2
+[{"accountId":67,"accountName":"testpaul2","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000},{"accountId":65,"accountName":"testpaul2@example.com","accountType":null,"accountCustomerId":null,"accountOpenedDate":null,"accountOtherDetails":null,"accountBalance":1000}]%                                            

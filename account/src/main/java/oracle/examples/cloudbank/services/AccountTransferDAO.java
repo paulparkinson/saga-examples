@@ -12,19 +12,19 @@ import java.util.List;
 
 
 @Component
-public class AccountLRAUtils {
+public class AccountTransferDAO {
 
-    private static AccountLRAUtils singleton;
+    private static AccountTransferDAO singleton;
     final AccountRepository accountRepository;
     final JournalRepository journalRepository;
-    public AccountLRAUtils(AccountRepository accountRepository, JournalRepository journalRepository) {
+    public AccountTransferDAO(AccountRepository accountRepository, JournalRepository journalRepository) {
         this.accountRepository = accountRepository;
         this.journalRepository = journalRepository;
         singleton = this;
         System.out.println("LRAUtils accountsRepository = " + accountRepository + ", journalRepository = " + journalRepository);
     }
 
-    public static AccountLRAUtils instance() {
+    public static AccountTransferDAO instance() {
         return singleton;
     }
 
@@ -76,7 +76,7 @@ public class AccountLRAUtils {
 
     public  Response status(String lraId) throws Exception {
         Journal journal = getJournalForLRAid(lraId);
-        if (AccountLRAUtils.getStatusFromString(journal.getLraState()).equals(ParticipantStatus.Compensated))
+        if (AccountTransferDAO.getStatusFromString(journal.getLraState()).equals(ParticipantStatus.Compensated))
             return Response.ok(ParticipantStatus.Compensated).build();
         else return Response.ok(ParticipantStatus.Completed).build();
     }
@@ -84,28 +84,28 @@ public class AccountLRAUtils {
     public void afterLRA(String lraId, String status) throws Exception {
         Journal journal = getJournalForLRAid(lraId);
         journal.setLraState(status);
-        journalRepository.delete(journal);
+        journalRepository.save(journal);
     }
 
      Account getAccountForJournal(Journal journal) throws Exception {
-        Account account;
-        List<Account> accounts = accountRepository.findAccountsByAccountNameContains(journal.getAccountName());
-        if (accounts.size() == 0) throw new Exception("Invalid accountName:" + journal.getAccountName());
-        account = accounts.get(1);
+//        List<Account> accounts = accountRepository.findByAccountId(journal.getAccountId());
+        Account account = accountRepository.findByAccountId(journal.getAccountId());
+        if (account == null) throw new Exception("Invalid accountName:" + journal.getAccountId());
         return account;
     }
-     Account getAccountForAccountName(String accountName)  {
-         List<Account> accounts = accountRepository.findAccountsByAccountNameContains(accountName);
-         if (accounts.size() == 0) return null;
-         return accounts.get(1);
+     Account getAccountForAccountId(long accountId)  {
+//         List<Account> accounts = accountRepository.findByAccountId(accountId);
+         Account account = accountRepository.findByAccountId(accountId);
+         if (account == null) return null;
+         return account;
     }
 
      Journal getJournalForLRAid(String lraId) throws Exception {
         Journal journal;
         List<Journal> journals = journalRepository.findJournalByLraId(lraId);
         if (journals.size() == 0) {
-            journalRepository.save(new Journal("unknown", "unknown", 0, lraId,
-                    AccountLRAUtils.getStatusString(ParticipantStatus.FailedToComplete)));
+            journalRepository.save(new Journal("unknown", -1, 0, lraId,
+                    AccountTransferDAO.getStatusString(ParticipantStatus.FailedToComplete)));
             throw new Exception("Journal entry does not exist for lraId:" + lraId);
         }
         journal = journals.get(0);

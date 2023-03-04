@@ -6,10 +6,10 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 
 /**
- * Journal services multiple purposes:
- *  - Ledger/journal for tracking changes made in an LRA
+ * A separate blockchain table could be used for the ledger aspects but currently this Journal serves multiple purposes:
+ *  - Ledger for transfer operations
+ *  - Journal for tracking changes made in an LRA
  *  - Store for LRA state
- *  - Blockchain could facilitate auditing/ledger aspects of the journal
  */
 @Entity
 @Table(name = "JOURNAL")
@@ -28,8 +28,8 @@ public class Journal {
     @Column(name = "JOURNAL_TYPE")
     private String journalType;
 
-    @Column(name = "ACCOUNT_NAME")
-    private String accountName;
+    @Column(name = "ACCOUNT_ID")
+    private long accountId;
 
     @Column(name = "LRA_ID")
     private String lraId;
@@ -40,9 +40,9 @@ public class Journal {
     @Column(name = "JOURNAL_AMOUNT")
     private long journalAmount;
 
-    public Journal(String journalType, String accountName, long journalAmount, String lraId, String lraState) {
+    public Journal(String journalType, long accountId, long journalAmount, String lraId, String lraState) {
         this.journalType = journalType;
-        this.accountName = accountName;
+        this.accountId = accountId;
         this.lraId = lraId;
         this.lraState = lraState;
         this.journalAmount = journalAmount;

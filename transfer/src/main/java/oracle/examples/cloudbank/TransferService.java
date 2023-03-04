@@ -50,9 +50,9 @@ public class TransferService {
     @POST
     @Path("/transfer")
     @Produces(MediaType.APPLICATION_JSON)
-    @LRA(value = LRA.Type.REQUIRES_NEW, end = true)
-    public Response transfer(@QueryParam("fromAccount") String fromAccount,
-                             @QueryParam("toAccount") String toAccount,
+    @LRA(value = LRA.Type.REQUIRES_NEW, end = false)
+    public Response transfer(@QueryParam("fromAccount") long fromAccount,
+                             @QueryParam("toAccount") long toAccount,
                              @QueryParam("amount") long amount,
                              @Context UriInfo uriInfo,
                              @HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
@@ -79,12 +79,12 @@ public class TransferService {
 
     }
 
-    private String withdraw(String accountName, long depositAmount) {
-        log.info("withdraw accountName = " + accountName + ", depositAmount = " + depositAmount);
+    private String withdraw(long accountId, long amount) {
+        log.info("withdraw accountId = " + accountId + ", amount = " + amount);
         WebTarget webTarget =
                 ClientBuilder.newClient().target(withdrawUri).path("/")
-                        .queryParam("accountName", accountName)
-                        .queryParam("amount", depositAmount);
+                        .queryParam("accountId", accountId)
+                        .queryParam("amount", amount);
         URI lraId = Current.peek();
         log.info("withdraw lraId = " + lraId);
         String withdrawOutcome =
@@ -92,12 +92,12 @@ public class TransferService {
                         .post(Entity.text("")).readEntity(String.class);
         return withdrawOutcome;
     }
-    private String deposit(String accountName, long depositAmount) {
-        log.info("deposit accountName = " + accountName + ", depositAmount = " + depositAmount);
+    private String deposit(long accountId, long amount) {
+        log.info("deposit accountId = " + accountId + ", amount = " + amount);
         WebTarget webTarget =
                 ClientBuilder.newClient().target(depositUri).path("/")
-                        .queryParam("accountName", accountName)
-                        .queryParam("amount", depositAmount);
+                        .queryParam("accountId", accountId)
+                        .queryParam("amount", amount);
         URI lraId = Current.peek();
         log.info("deposit lraId = " + lraId);
         String depositOutcome =
