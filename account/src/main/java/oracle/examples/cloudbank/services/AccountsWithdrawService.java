@@ -5,6 +5,7 @@ import oracle.examples.cloudbank.model.Journal;
 import org.eclipse.microprofile.lra.annotation.*;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.enterprise.context.RequestScoped;
@@ -29,12 +30,11 @@ public class AccountsWithdrawService {
     @Path("/withdraw")
     @Produces(MediaType.APPLICATION_JSON)
     @LRA(value = LRA.Type.MANDATORY, end = false)
-    @Transactional
     public Response withdraw(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
                             @QueryParam("accountId") long accountId,
                             @QueryParam("amount") long withdrawAmount)  {
         log.info("withdraw " + withdrawAmount + " in account:" + accountId + " (lraId:" + lraId + ")...");
-        AccountTransferDAO.instance().saveJournal(new Journal(WITHDRAW, accountId, withdrawAmount, lraId,
+        AccountTransferDAO.instance().saveJournal(new Journal(WITHDRAW, accountId, 0, lraId,
                 AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
         Account account = AccountTransferDAO.instance().getAccountForAccountId(accountId);
         if (account==null) {
@@ -49,6 +49,8 @@ public class AccountsWithdrawService {
                 " new balance:" + (account.getAccountBalance() - withdrawAmount));
         account.setAccountBalance(account.getAccountBalance() - withdrawAmount);
         AccountTransferDAO.instance().saveAccount(account);
+        AccountTransferDAO.instance().saveJournal(new Journal(WITHDRAW, accountId, withdrawAmount, lraId,
+                AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
         return Response.ok("withdraw succeeded").build();
     }
 
