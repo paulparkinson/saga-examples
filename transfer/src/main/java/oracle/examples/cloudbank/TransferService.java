@@ -10,11 +10,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Logger;
@@ -33,15 +30,17 @@ public class TransferService {
     private URI transferConfirmUri;
     private URI transferProcessCancelUri;
     private URI transferProcessConfirmUri;
+
+
     @PostConstruct
     private void initController() {
-        try { //todo get from config/env
-            withdrawUri = new URI("http://account.application:8080/withdraw/withdraw");
-            depositUri = new URI("http://account.application:8080/deposit/deposit");
-            transferCancelUri = new URI("http://transfer.application:8080/cancel");
-            transferConfirmUri = new URI("http://transfer.application:8080/confirm");
-            transferProcessCancelUri = new URI("http://transfer.application:8080/processcancel");
-            transferProcessConfirmUri = new URI("http://transfer.application:8080/processconfirm");
+        try {
+            withdrawUri = new URI(ApplicationConfig.accountWithdrawUrl);
+            depositUri = new URI(ApplicationConfig.accountDepositUrl);
+            transferCancelUri = new URI(ApplicationConfig.transferCancelURL);
+            transferConfirmUri = new URI(ApplicationConfig.transferConfirmURL);
+            transferProcessCancelUri = new URI(ApplicationConfig.transferCancelProcessURL);
+            transferProcessConfirmUri = new URI(ApplicationConfig.transferConfirmProcessURL);
         } catch (URISyntaxException ex) {
             throw new IllegalStateException("Failed to initialize " + TransferService.class.getName(), ex);
         }
@@ -54,9 +53,7 @@ public class TransferService {
     public Response transfer(@QueryParam("fromAccount") long fromAccount,
                              @QueryParam("toAccount") long toAccount,
                              @QueryParam("amount") long amount,
-                             @Context UriInfo uriInfo,
-                             @HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId,
-                             @Context ContainerRequestContext containerRequestContext)
+                             @HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId)
     {
         if (lraId == null) {
             return Response.serverError().entity("Failed to create LRA").build();

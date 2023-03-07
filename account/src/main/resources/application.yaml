@@ -1,24 +1,18 @@
 server:
   port: 8080
-
 spring:
   application:
     name: account
   jersey:
     type: filter
-
-  # JPA Configuration
   jpa:
     hibernate:
       ddl-auto: update
-#      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.Oracle12cDialect
         format_sql: true
     show-sql: false
-
-  # Datasource Configuration - url, username and password needs to go into Vault
   datasource:
     url: jdbc:oracle:thin:@obaasdevdb_tp?TNS_ADMIN=/Users/pparkins/Downloads/Wallet_OBAASDEVDB
     username: account
@@ -31,27 +25,6 @@ spring:
       initial-pool-size: 15
       min-pool-size: 10
       max-pool-size: 30
-
-#management:
-#  endpoint:
-#    health:
-#      show-details: always
-#  endpoints:
-#    web:
-#      exposure:
-#        include: "health,metrics,env,beans,configprops,scheduledtasks,loggers,mappings,prometheus"
-
-#eureka:
-#  instance:
-#    hostname: ${spring.application.name}
-#    preferIpAddress: true
-#  client:
-#    service-url:
-#      defaultZone: ${eureka.service-url}
-#    fetch-registry: true
-#    register-with-eureka: true
-#    enabled: true
-
 lra:
   coordinator:
     url: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator

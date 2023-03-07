@@ -9,7 +9,6 @@ import org.glassfish.jersey.servlet.ServletProperties;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.ApplicationPath;
-import java.net.URISyntaxException;
 
 @Component
 @ApplicationPath("/")
