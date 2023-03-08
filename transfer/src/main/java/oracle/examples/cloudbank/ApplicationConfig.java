@@ -1,8 +1,8 @@
 package oracle.examples.cloudbank;
 
+import io.narayana.lra.client.NarayanaLRAClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
 
 @Configuration
 public class ApplicationConfig {
@@ -21,6 +21,7 @@ public class ApplicationConfig {
                              @Value("${transfer.cancel.process.url}") String transferCancelProcessURL,
                              @Value("${transfer.confirm.url}") String transferConfirmURL,
                              @Value("${transfer.confirm.process.url}") String transferConfirmProcessURL) {
+        System.getProperties().setProperty(NarayanaLRAClient.LRA_COORDINATOR_URL_KEY, lraCoordinatorUrl);
         this.accountWithdrawUrl = accountWithdrawUrl;
         this.accountDepositUrl = accountDepositUrl;
         this.transferCancelURL = transferCancelURL;
