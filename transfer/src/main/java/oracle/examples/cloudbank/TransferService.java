@@ -68,7 +68,7 @@ public class TransferService {
             log.info(returnString);
             if (returnString.contains("failed")) isCompensate = true; //deposit failed
         } else isCompensate = true; //withdraw failed
-        log.info("LRA/transfer action will be " + (isCompensate?"cancel":"confirm"));
+        log.info("LRA/transfer action will be " + (isCompensate?"cancel":"close"));
         WebTarget webTarget = ClientBuilder.newClient().target(isCompensate?transferCancelUri:transferConfirmUri);
         webTarget.request().header(TRANSFER_ID, lraId)
                 .post(Entity.text("")).readEntity(String.class);
@@ -107,11 +107,11 @@ public class TransferService {
 
 
     @POST
-    @Path("/processconfirm")
+    @Path("/processclose")
     @Produces(MediaType.APPLICATION_JSON)
     @LRA(value = LRA.Type.MANDATORY)
-    public Response processconfirm(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws NotFoundException {
-        log.info("Process confirm for transfer : " + lraId);
+    public Response processClose(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws NotFoundException {
+        log.info("Process close for transfer : " + lraId);
         return Response.ok().build();
     }
 
@@ -119,7 +119,7 @@ public class TransferService {
     @Path("/processcancel")
     @Produces(MediaType.APPLICATION_JSON)
     @LRA(value = LRA.Type.MANDATORY, cancelOn = Response.Status.OK)
-    public Response processcancel(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws NotFoundException {
+    public Response processCancel(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws NotFoundException {
         log.info("Process cancel for transfer : " + lraId);
         return Response.ok().build();
     }
@@ -127,22 +127,22 @@ public class TransferService {
 
     // The following two methods could be in an external client.
     // They are included here for convenience.
-    // The transfer method makes a Rest call to confirm or commit.
-    // The confirm or commit method suspends the LRA (via NOT_SUPPORTED)
-    // The confirm or commit method then proceeds to make a Rest call to the "processconfirm" or "processcommit" method
-    // The "processconfirm" and "processcommit" methods import the LRA (via MANDATORY)
+    // The transfer method makes a Rest call to close or commit.
+    // The close or commit method suspends the LRA (via NOT_SUPPORTED)
+    // The close or commit method then proceeds to make a Rest call to the "processclose" or "processcommit" method
+    // The "processclose" and "processcommit" methods import the LRA (via MANDATORY)
     //  and end the LRA implicitly accordingly upon return.
     @POST
-    @Path("/confirm")
+    @Path("/close")
     @Produces(MediaType.APPLICATION_JSON)
     @LRA(value = LRA.Type.NOT_SUPPORTED)
-    public Response confirm(@HeaderParam(TRANSFER_ID) String transferId) throws NotFoundException {
-        log.info("Received confirm for transfer : " + transferId);
-        String confirmOutcome =
+    public Response close(@HeaderParam(TRANSFER_ID) String transferId) throws NotFoundException {
+        log.info("Received close for transfer : " + transferId);
+        String closeOutcome =
                 ClientBuilder.newClient().target(transferProcessConfirmUri).request()
                         .header(LRA_HTTP_CONTEXT_HEADER, transferId)
                         .post(Entity.text("")).readEntity(String.class);
-        return Response.ok(confirmOutcome).build();
+        return Response.ok(closeOutcome).build();
     }
 
     @POST
@@ -151,11 +151,11 @@ public class TransferService {
     @LRA(value = LRA.Type.NOT_SUPPORTED, cancelOn = Response.Status.OK)
     public Response cancel(@HeaderParam(TRANSFER_ID) String transferId) throws NotFoundException {
         log.info("Received cancel for transfer : " + transferId);
-        String confirmOutcome =
+        String closeOutcome =
                 ClientBuilder.newClient().target(transferProcessCancelUri).request()
                         .header(LRA_HTTP_CONTEXT_HEADER, transferId)
                         .post(Entity.text("")).readEntity(String.class);
-        return Response.ok(confirmOutcome).build();
+        return Response.ok(closeOutcome).build();
     }
 
 }

@@ -1,7 +1,9 @@
 package oracle.examples.cloudbank.services;
 
 import oracle.examples.cloudbank.model.Account;
+import oracle.examples.cloudbank.model.Journal;
 import oracle.examples.cloudbank.repository.AccountRepository;
+import oracle.examples.cloudbank.repository.JournalRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,13 +22,16 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1")
-public class AccountsAdminService {
+public class AccountAndJournalAdminService {
 
     final AccountRepository accountRepository;
+    final JournalRepository journalRepository;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public AccountsAdminService(AccountRepository accountRepository) {
+    public AccountAndJournalAdminService(AccountRepository accountRepository, JournalRepository journalRepository) {
+
         this.accountRepository = accountRepository;
+        this.journalRepository = journalRepository;
     }
 
     // Get Account with specific Account ID
@@ -68,7 +73,7 @@ public class AccountsAdminService {
             return new ResponseEntity<>(accountData, HttpStatus.OK);
         } catch (Exception e) {
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+        }
     }
 
     @PostMapping("/account")
@@ -87,16 +92,16 @@ public class AccountsAdminService {
         }
     }
 
-    @PostMapping("/accountWithBalance")
-    public ResponseEntity<Account> createAccountWithBalance(@RequestBody Account account) {
-        log.info("ACCOUNT: createAccount");
+    @PostMapping("/createAccountWith1000Balance")
+    public ResponseEntity<Account> createAccountWith1000Balance(@RequestBody Account account) {
+        log.info("ACCOUNT: createAccount with $1000 balance");
         try {
             Account entity = new Account(
                     account.getAccountName(),
                     account.getAccountType(),
                     account.getAccountOtherDetails(),
                     account.getAccountCustomerId());
-            entity.setAccountBalance(account.getAccountBalance());
+            entity.setAccountBalance(1000);
             Account _account = accountRepository.save(entity);
             return new ResponseEntity<>(_account, HttpStatus.CREATED);
 
@@ -115,6 +120,20 @@ public class AccountsAdminService {
         }
     }
 
+    @GetMapping("/journals")
+    public ResponseEntity<List<Journal>> getAllJournals() {
+        log.info("JOURNAL: getAllJournals");
+        try {
+            List<Journal> journalData = new ArrayList<Journal>();
+            journalData.addAll(journalRepository.findAll());
+            if (journalData.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(journalData, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
 

@@ -61,10 +61,6 @@ spec:
               value: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator
             - name: MP_LRA_PARTICIPANT_URL
               value: http://account.cloudbank.svc.cluster.local:8080
-#            - name: SERVICE_NAME
-#              value: account
-#            - name: ORACLE_TMM_CALLBACK_URL
-#              value: http://account.cloudbank.svc.cluster.local:8083
             - name: spring.datasource.username
               valueFrom:
                 secretKeyRef:
@@ -92,5 +88,4 @@ spec:
               mountPath: /oracle/tnsadmin
       imagePullSecrets:
         - name: registry-auth
----
 

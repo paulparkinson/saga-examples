@@ -1,0 +1,16 @@
+apiVersion: database.oracle.com/v1alpha1
+kind: AutonomousDatabase
+metadata:
+  name: autonomousdatabase-sample
+spec:
+  details:
+    autonomousDatabaseOCID: ocid1.autonomousdatabase.oc1.iad.anuwcljrq33dybyalbfb2hpezbjushckumnmeyw3atil5swcqb6fet5cxygq
+    wallet:
+      name: instance-wallet
+      password:
+        k8sSecret:
+          name: instance-wallet-password
+  ociConfig:
+    configMapName: oci-cred
+    secretName: oci-privatekey
+# kubectl create secret generic instance-wallet-password --from-literal=instance-wallet-password='password_here'

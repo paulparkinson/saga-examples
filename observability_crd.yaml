@@ -1,0 +1,45 @@
+apiVersion: observability.oracle.com/v1alpha1
+kind: Observability
+metadata:
+  name: testdb
+spec:
+  database:
+    # Required
+    dbConnectionString:
+      key: "access"
+      secret: db-connect-string
+
+    # Required
+    dbPassword:
+      key: "password"
+      secret: db-password
+
+    # This secret contains the wallet files and must be provided if you
+    # are connecting to your database with a wallet
+    dbWallet:
+    key:
+      secret: "instance-wallet"
+
+  # Provides configuration to the port used by the exporter service
+  # Optional
+  service:
+    port: 9161
+
+  # Provides configuration to the port used in the service monitor
+  # Optional
+  prometheus:
+    port: metrics
+
+  # Provides configuration to the name of the created configmap
+  # Optional
+  grafanaDashboard:
+    configMapName: grafana-json-sample
+
+  # Used by servicemonitor, deployment and service
+  # Optional
+  labels:
+    app: sample-exporter
+
+  # Provides configuration to the exporter replicas created
+  # Optional
+  replicas: 1

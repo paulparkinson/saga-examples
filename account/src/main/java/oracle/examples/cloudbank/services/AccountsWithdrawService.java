@@ -5,6 +5,7 @@ import oracle.examples.cloudbank.model.Journal;
 import org.eclipse.microprofile.lra.annotation.*;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.*;
@@ -34,7 +35,7 @@ public class AccountsWithdrawService {
         log.info("withdraw " + withdrawAmount + " in account:" + accountId + " (lraId:" + lraId + ")...");
         Account account = AccountTransferDAO.instance().getAccountForAccountId(accountId);
         if (account==null) {
-            log.info("withdraw failed: account does not exist");
+            log.info("withdraw failed: account does not exist"); //could also do leave here
             AccountTransferDAO.instance().saveJournal(new Journal(WITHDRAW, accountId, 0, lraId,
                     AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
             return Response.ok("withdraw failed: account does not exist").build();
@@ -47,11 +48,17 @@ public class AccountsWithdrawService {
         }
         log.info("withdraw current balance:" + account.getAccountBalance() +
                 " new balance:" + (account.getAccountBalance() - withdrawAmount));
+        updateAccountBalance(lraId, accountId, withdrawAmount, account);
+        return Response.ok("withdraw succeeded").build();
+    }
+
+
+    @Transactional
+    private void updateAccountBalance(String lraId, long accountId, long withdrawAmount, Account account) {
         account.setAccountBalance(account.getAccountBalance() - withdrawAmount);
         AccountTransferDAO.instance().saveAccount(account);
         AccountTransferDAO.instance().saveJournal(new Journal(WITHDRAW, accountId, withdrawAmount, lraId,
                 AccountTransferDAO.getStatusString(ParticipantStatus.Active)));
-        return Response.ok("withdraw succeeded").build();
     }
 
     /**
@@ -64,7 +71,9 @@ public class AccountsWithdrawService {
     public Response completeWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws Exception {
         log.info("withdraw complete called for LRA : " + lraId);
         Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId, WITHDRAW);
-        journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Completed));
+        if (journal != null) {
+            journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Completed));
+        } else journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.FailedToComplete));
         AccountTransferDAO.instance().saveJournal(journal);
         return Response.ok(ParticipantStatus.Completed.name()).build();
     }
@@ -79,15 +88,27 @@ public class AccountsWithdrawService {
     public Response compensateWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws Exception {
         log.info("Account withdraw compensate() called for LRA : " + lraId);
         Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId, WITHDRAW);
+        String lraState = journal.getLraState();
+        if(lraState.equals(ParticipantStatus.Compensating) ||
+                lraState.equals(ParticipantStatus.Compensated))
+            return Response.ok(AccountTransferDAO.getStatusFromString(lraState)).build();
         journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Compensating));
+        AccountTransferDAO.instance().saveJournal(journal);
+        doCompensationWork(journal);
+        return Response.ok(ParticipantStatus.Compensated.name()).build();
+    }
+
+    @Transactional
+    private void doCompensationWork(Journal journal) {
         Account account = AccountTransferDAO.instance().getAccountForAccountId(journal.getAccountId());
         if (account != null) {
             account.setAccountBalance(account.getAccountBalance() + journal.getJournalAmount());
             AccountTransferDAO.instance().saveAccount(account);
+        } else {
+            journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.FailedToCompensate));
         }
         journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Compensated));
         AccountTransferDAO.instance().saveJournal(journal);
-        return Response.ok(ParticipantStatus.Compensated.name()).build();
     }
 
     @GET
@@ -100,13 +121,13 @@ public class AccountsWithdrawService {
     }
 
     /**
-     * Delete journal entry for LRA
+     * Delete journal entry for LRA (or keep for auditing)
      */
     @PUT
     @Path("/after")
     @AfterLRA
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response afterLRA(@HeaderParam(LRA_HTTP_ENDED_CONTEXT_HEADER) String lraId, String status) throws Exception {
+    public Response afterLRA(@HeaderParam(LRA_HTTP_ENDED_CONTEXT_HEADER) String lraId, LRAStatus status) throws Exception {
         log.info("After LRA Called : " + lraId);
         AccountTransferDAO.instance().afterLRA(lraId, status, WITHDRAW);
         return Response.ok().build();

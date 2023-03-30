@@ -2,11 +2,7 @@ package oracle.examples.cloudbank.services;
 
 import oracle.examples.cloudbank.model.Account;
 import oracle.examples.cloudbank.model.Journal;
-import org.eclipse.microprofile.lra.annotation.AfterLRA;
-import org.eclipse.microprofile.lra.annotation.Compensate;
-import org.eclipse.microprofile.lra.annotation.Complete;
-import org.eclipse.microprofile.lra.annotation.ParticipantStatus;
-import org.eclipse.microprofile.lra.annotation.Status;
+import org.eclipse.microprofile.lra.annotation.*;
 import org.eclipse.microprofile.lra.annotation.ws.rs.LRA;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,16 +68,28 @@ public class AccountsDepositService {
     @Transactional
     public Response completeWork(@HeaderParam(LRA_HTTP_CONTEXT_HEADER) String lraId) throws Exception {
         log.info("deposit complete called for LRA : " + lraId);
-        //get the journal and account...
         Journal journal = AccountTransferDAO.instance().getJournalForLRAid(lraId, DEPOSIT);
-        Account account= AccountTransferDAO.instance().getAccountForJournal(journal);
+        String lraState = journal.getLraState();
+        if(lraState.equals(ParticipantStatus.Compensating) ||
+                lraState.equals(ParticipantStatus.Compensated))
+            return Response.ok(AccountTransferDAO.getStatusFromString(lraState)).build();
         journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Completing));
-        //update the account balance and journal entry...
-        account.setAccountBalance(account.getAccountBalance() + journal.getJournalAmount());
-        AccountTransferDAO.instance().saveAccount(account);
+        AccountTransferDAO.instance().saveJournal(journal);
+        doCompleteWork(journal);
+        return Response.ok(ParticipantStatus.Completed.name()).build();
+    }
+
+    @Transactional
+    private void doCompleteWork(Journal journal) throws Exception {
+        Account account = AccountTransferDAO.instance().getAccountForAccountId(journal.getAccountId());
+        if (account != null) {
+            account.setAccountBalance(account.getAccountBalance() + journal.getJournalAmount());
+            AccountTransferDAO.instance().saveAccount(account);
+        } else {
+            journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.FailedToComplete));
+        }
         journal.setLraState(AccountTransferDAO.getStatusString(ParticipantStatus.Completed));
         AccountTransferDAO.instance().saveJournal(journal);
-        return Response.ok(ParticipantStatus.Completed.name()).build();
     }
 
     /**
@@ -112,13 +120,13 @@ public class AccountsDepositService {
     }
 
     /**
-     * Delete journal entry for LRA
+     * Delete journal entry for LRA (or keep for auditing)
      */
     @PUT
     @Path("/after")
     @AfterLRA
     @Consumes(MediaType.TEXT_PLAIN)
-    public Response afterLRA(@HeaderParam(LRA_HTTP_ENDED_CONTEXT_HEADER) String lraId, String status) throws Exception {
+    public Response afterLRA(@HeaderParam(LRA_HTTP_ENDED_CONTEXT_HEADER) String lraId, LRAStatus status) throws Exception {
         log.info("After LRA Called : " + lraId);
         AccountTransferDAO.instance().afterLRA(lraId, status, DEPOSIT);
         return Response.ok().build();

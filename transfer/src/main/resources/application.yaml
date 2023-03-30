@@ -1,19 +1,35 @@
 server:
-  port: 8080
+  port: 8081
 account:
   deposit:
-      url: http://account.application:8080/deposit/deposit
+      url: http://192.168.205.1:8080/deposit/deposit
   withdraw:
-      url: http://account.application:8080/withdraw/withdraw
+      url: http://192.168.205.1:8080/withdraw/withdraw
 transfer:
   cancel:
-      url: http://transfer.application:8080/cancel
+      url: http://localhost:8081/cancel
       process:
-         url: http://transfer.application:8080/processcancel
+           url: http://192.168.205.1:8081/processcancel
   confirm:
-      url: http://transfer.application:8080/confirm
+      url: http://localhost:8081/confirm
       process:
-         url: http://transfer.application:8080/processconfirm
+         url: http://192.168.205.1:8081/processconfirm
+#account:
+#  deposit:
+#      url: http://localhost:8080/deposit/deposit
+#  withdraw:
+#      url: http://localhost:8080/withdraw/withdraw
+#transfer:
+#  cancel:
+#      url: http://localhost:8080/cancel
+#      process:
+#         url: http://localhost:8080/processcancel
+#  confirm:
+#      url: http://localhost:8080/confirm
+#      process:
+#         url: http://localhost:8080/processconfirm
 lra:
   coordinator:
-    url: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator
+    url: http://localhost:9000/api/v1/lra-coordinator
+#    url: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator
+

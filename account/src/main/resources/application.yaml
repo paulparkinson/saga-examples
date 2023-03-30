@@ -27,4 +27,5 @@ spring:
       max-pool-size: 30
 lra:
   coordinator:
-    url: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator
+    url: http://localhost:9000/api/v1/lra-coordinator
+#    url: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator

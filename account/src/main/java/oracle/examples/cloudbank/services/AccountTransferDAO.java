@@ -4,13 +4,13 @@ import oracle.examples.cloudbank.model.Account;
 import oracle.examples.cloudbank.model.Journal;
 import oracle.examples.cloudbank.repository.AccountRepository;
 import oracle.examples.cloudbank.repository.JournalRepository;
+import org.eclipse.microprofile.lra.annotation.LRAStatus;
 import org.eclipse.microprofile.lra.annotation.ParticipantStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.Response;
-
 
 @Component
 public class AccountTransferDAO {
@@ -23,7 +23,6 @@ public class AccountTransferDAO {
         this.accountRepository = accountRepository;
         this.journalRepository = journalRepository;
         singleton = this;
-        System.out.println("LRAUtils accountsRepository = " + accountRepository + ", journalRepository = " + journalRepository);
     }
 
     public static AccountTransferDAO instance() {
@@ -46,6 +45,29 @@ public class AccountTransferDAO {
                 return "Compensating";
             case Completing:
                 return "Completing";
+            default:
+                return "Unknown";
+        }
+    }
+    public static boolean isLRASuccessfullyEnded(LRAStatus status) {
+        return status.equals(LRAStatus.Cancelled) || status.equals(LRAStatus.Closed);
+    }
+    public static String getStatusStringForLRAStatus(LRAStatus status) {
+        switch (status) {
+            case Active:
+                return "Active";
+            case Cancelled:
+                return "Cancelled";
+            case Closed:
+                return "Closed";
+            case Cancelling:
+                return "Cancelling";
+            case Closing:
+                return "Closing";
+            case FailedToCancel:
+                return "FailedToCancel";
+            case FailedToClose:
+                return "FailedToClose";
             default:
                 return "Unknown";
         }
@@ -84,13 +106,13 @@ public class AccountTransferDAO {
         else return Response.ok(ParticipantStatus.Completed).build();
     }
 
-    public void afterLRA(String lraId, String status, String journalType) throws Exception {
-        Journal journal = getJournalForLRAid(lraId, journalType);
-        journal.setLraState(status);
-        journalRepository.save(journal);
+    public void afterLRA(String lraId, LRAStatus status, String journalType) throws Exception {
+        //In the case of successful ending status of the LRA, we could purge the journal of the LRA here by doing...
+        //if (isLRASuccessfullyEnded(status)) journalRepository.delete(getJournalForLRAid(lraId, journalType));
+        //However, we keep the entry for analysis/auditing after the fact.
     }
 
-     Account getAccountForJournal(Journal journal) throws Exception {
+    Account getAccountForJournal(Journal journal) throws Exception {
         Account account = accountRepository.findByAccountId(journal.getAccountId());
         if (account == null) throw new Exception("Invalid accountName:" + journal.getAccountId());
         return account;
