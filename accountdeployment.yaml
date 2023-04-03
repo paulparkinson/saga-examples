@@ -1,26 +1,3 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: account
-  labels:
-    app: account
-    service: account
-spec:
-  ports:
-    - port: 8080
-      name: http
-      targetPort: 8080
-  selector:
-    app: account
-
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: account
-  labels:
-    account: account
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -43,17 +20,13 @@ spec:
       volumes:
         - name: tns-admin
           secret:
-            secretName: "obaasdevdb-tns-admin"
+            secretName: "tns-admin"
       containers:
         - name: account
-          image: iad.ocir.io/maacloud/baasdev/cloudbank/account:0.3
+          image: account:0.1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
-          resources:
-            limits:
-              memory: "500Mi"
-              cpu: "250m"
           env:
             - name: spring.jersey.type
               value: filter
@@ -67,22 +40,19 @@ spec:
                   name: account-db-secrets
                   key: db.username
             - name: spring.datasource.password
-              value: Welcome12345
-#              valueFrom:
-#                secretKeyRef:
-#                  name: account-db-secrets
-#                  key: db.password
+              valueFrom:
+                secretKeyRef:
+                  name: account-db-secrets
+                  key: db.password
             - name: DB_SERVICE
               valueFrom:
                 secretKeyRef:
                   name: account-db-secrets
                   key: db.service
             - name: spring.datasource.url
-              value: jdbc:oracle:thin:@obaasdevdb_tp?TNS_ADMIN=/oracle/tnsadmin
-#              value: jdbc:oracle:thin:@$(DB_SERVICE)?TNS_ADMIN=/oracle/tnsadmin
+              value: jdbc:oracle:thin:@$(DB_SERVICE)?TNS_ADMIN=/oracle/tnsadmin
             - name: CONNECT_STRING
-              value: jdbc:oracle:thin:@obaasdevdb_tp?TNS_ADMIN=/oracle/tnsadminobaasdevdb_tp
-#              value: jdbc:oracle:thin:@$(DB_SERVICE)?TNS_ADMIN=/oracle/tnsadminobaasdevdb_tp
+              value: jdbc:oracle:thin:@$(DB_SERVICE)?TNS_ADMIN=/oracle/tnsadminobaasdevdb_tp
           volumeMounts:
             - name: tns-admin
               mountPath: /oracle/tnsadmin
