@@ -1,1 +1,1 @@
-See blog at https://blogs.oracle.com/authors/paulparkinson for details
+See blog at https://dzone.com/articles/developing-saga-participant-code-for-compensating for details
