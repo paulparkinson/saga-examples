@@ -4,13 +4,13 @@ import oracle.examples.cloudbank.model.Account;
 import oracle.examples.cloudbank.model.Journal;
 import oracle.examples.cloudbank.repository.AccountRepository;
 import oracle.examples.cloudbank.repository.JournalRepository;
-import org.eclipse.microprofile.lra.annotation.LRAStatus;
-import org.eclipse.microprofile.lra.annotation.ParticipantStatus;
+import com.oracle.microtx.springboot.lra.annotation.LRAStatus;
+import com.oracle.microtx.springboot.lra.annotation.ParticipantStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.Response;
 
 @Component
 public class AccountTransferDAO {
@@ -99,11 +99,11 @@ public class AccountTransferDAO {
         accountRepository.save(account);
     }
 
-    public  Response status(String lraId, String journalType) throws Exception {
+    public ResponseEntity<?> status(String lraId, String journalType) throws Exception {
         Journal journal = getJournalForLRAid(lraId, journalType);
         if (AccountTransferDAO.getStatusFromString(journal.getLraState()).equals(ParticipantStatus.Compensated))
-            return Response.ok(ParticipantStatus.Compensated).build();
-        else return Response.ok(ParticipantStatus.Completed).build();
+            return ResponseEntity.ok(ParticipantStatus.Compensated);
+        else return ResponseEntity.ok(ParticipantStatus.Completed);
     }
 
     public void afterLRA(String lraId, LRAStatus status, String journalType) throws Exception {

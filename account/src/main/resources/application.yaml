@@ -3,8 +3,13 @@ server:
 spring:
   application:
     name: account
-  jersey:
-    type: filter
+  microtx:
+    lra:
+      coordinator-url: http://localhost:9000/api/v1/lra-coordinator
+#      coordinator-url: http://tmm-app:9000/api/v1/lra-coordinator
+      propagation-active: true
+      participant-url: http://192.168.205.1:8080
+      headers-propagation-prefix: {x-b3-, oracle-tmm-, authorization, refresh-}
   jpa:
     hibernate:
       ddl-auto: update
@@ -14,9 +19,9 @@ spring:
         format_sql: true
     show-sql: false
   datasource:
-    url: jdbc:oracle:thin:@obaasdevdb_tp?TNS_ADMIN=/Users/pparkins/Downloads/Wallet_OBAASDEVDB
-    username: account
-    password: Welcome1234##
+    url: jdbc:oracle:thin:@myservice_high?TNS_ADMIN=/Users/.../mywallet
+    username: myUser
+    password: myPW
     driver-class-name: oracle.jdbc.OracleDriver
     type: oracle.ucp.jdbc.PoolDataSource
     oracleucp:
@@ -25,7 +30,3 @@ spring:
       initial-pool-size: 15
       min-pool-size: 10
       max-pool-size: 30
-lra:
-  coordinator:
-    url: http://localhost:9000/api/v1/lra-coordinator
-#    url: http://otmm-tcs.otmm.svc.cluster.local:9000/api/v1/lra-coordinator

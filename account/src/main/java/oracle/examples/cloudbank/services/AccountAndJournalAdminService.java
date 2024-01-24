@@ -29,7 +29,6 @@ public class AccountAndJournalAdminService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     public AccountAndJournalAdminService(AccountRepository accountRepository, JournalRepository journalRepository) {
-
         this.accountRepository = accountRepository;
         this.journalRepository = journalRepository;
     }

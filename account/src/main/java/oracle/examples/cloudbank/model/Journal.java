@@ -3,8 +3,7 @@ package oracle.examples.cloudbank.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import java.io.Serializable;
+import jakarta.persistence.*;
 
 /**
  * A separate blockchain table could be used for the ledger aspects but currently this Journal serves multiple purposes:
